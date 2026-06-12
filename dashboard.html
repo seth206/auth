@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Welcome 🎉</h1>
+<p id="user"></p>
+
+<button onclick="logout()">Logout</button>
+
+<script>
+  const user = localStorage.getItem("loggedInUser");
+  document.getElementById("user").innerText = user;
+
+  function logout() {
+    localStorage.removeItem("loggedInUser");
+    window.location = "login.html";
+  }
+</script>
+
+</body>
+</html>
