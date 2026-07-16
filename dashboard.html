@@ -1,24 +1,180 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <title>Shared Checklist Dashboard</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>Welcome </h1>
-<p id="user"></p>
+  <!-- Navigation Bar -->
+  <header>
+    <h1>Welcome, <span id="user-display">Guest</span>!</h1>
+    <button onclick="logout()">Logout</button>
+  </header>
 
-<button onclick="logout()">Logout</button>
+  <main>
+    <!-- Section 1: Create a Checklist -->
+    <section class="card">
+      <h2>Create New Checklist</h2>
+      <div class="input-group">
+        <input type="text" id="checklist-title" placeholder="e.g., Grocery List, Project Alpha">
+        <button onclick="createNewChecklist()">Create</button>
+      </div>
+    </section>
 
-<script>
-  const user = localStorage.getItem("loggedInUser");
-  document.getElementById("user").innerText = user;
+    <!-- Section 2: Active Checklists -->
+    <section class="card">
+      <h2>Your Checklists</h2>
+      <div id="checklists-container">
+        <!-- Checklists will inject here dynamically -->
+      </div>
+    </section>
+  </main>
 
-  function logout() {
-    localStorage.removeItem("loggedInUser");
-    window.location = "login.html";
-  }
-</script>
+  <script>
+    // 1. AUTHENTICATION GUARD
+    // Protects the page. Redirects to login if no one is logged in.
+    const currentUser = localStorage.getItem("loggedInUser");
+    if (!currentUser) {
+      window.location.href = "login.html";
+    } else {
+      document.getElementById("user-display").innerText = currentUser;
+    }
 
+    // 2. DATA INITIALISATION
+    // Fetches existing checklists or sets up an empty list if none exist
+    let checklists = JSON.parse(localStorage.getItem("globalChecklists")) || [];
+
+    // 3. RENDER FUNCTION
+    // Draws the checklists, items, and invite systems onto the screen
+    function renderChecklists() {
+      const container = document.getElementById("checklists-container");
+      container.innerHTML = ""; // Clear existing UI
+
+      // Filter lists where the current user is either the owner or an invited member
+      const myLists = checklists.filter(list => 
+        list.owner === currentUser || list.members.includes(currentUser)
+      );
+
+      if (myLists.length === 0) {
+        container.innerHTML = "<p>No checklists found. Create one above!</p>";
+        return;
+      }
+
+      myLists.forEach(list => {
+        const listDiv = document.createElement("div");
+        listDiv.className = "checklist-box";
+
+        // Generate HTML for the individual items inside this checklist
+        let itemsHtml = "";
+        list.items.forEach((item, index) => {
+          itemsHtml += `
+            <div class="task-item">
+              <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem('${list.id}', ${index})">
+              <span class="${item.done ? 'completed' : ''}">${item.text}</span>
+            </div>
+          `;
+        });
+
+        // Generate HTML list of members currently sharing this checklist
+        const membersList = [list.owner, ...list.members].join(", ");
+
+        listDiv.innerHTML = `
+          <h3>${list.title}</h3>
+          <p class="meta"><strong>Shared with:</strong> ${membersList}</p>
+          
+          <!-- Task List UI -->
+          <div class="tasks-container">${itemsHtml}</div>
+          
+          <!-- Add Task Input -->
+          <div class="input-group">
+            <input type="text" id="new-item-${list.id}" placeholder="Add a task...">
+            <button onclick="addItem('${list.id}')">Add</button>
+          </div>
+
+          <!-- Invite System UI -->
+          <div class="invite-group">
+            <input type="text" id="invite-user-${list.id}" placeholder="Enter username to invite">
+            <button class="btn-secondary" onclick="inviteUser('${list.id}')">Invite</button>
+          </div>
+        `;
+        container.appendChild(listDiv);
+      });
+    }
+
+    // 4. CORE ACTIONS
+
+    // Create a brand new list
+    function createNewChecklist() {
+      const titleInput = document.getElementById("checklist-title");
+      if (!titleInput.value.trim()) return alert("Please enter a title");
+
+      const newList = {
+        id: "list_" + Date.now(), // Unique ID
+        title: titleInput.value,
+        owner: currentUser,
+        members: [], // Users invited will go here
+        items: []    // Checklist tasks will go here
+      };
+
+      checklists.push(newList);
+      saveAndRefresh();
+      titleInput.value = "";
+    }
+
+    // Add a task item to a specific checklist
+    function addItem(listId) {
+      const itemInput = document.getElementById(`new-item-${listId}`);
+      if (!itemInput.value.trim()) return;
+
+      const list = checklists.find(l => l.id === listId);
+      list.items.push({ text: itemInput.value, done: false });
+      
+      saveAndRefresh();
+    }
+
+    // Toggle a task checkbox between done and undone
+    function toggleItem(listId, itemIndex) {
+      const list = checklists.find(l => l.id === listId);
+      list.items[itemIndex].done = !list.items[itemIndex].done;
+      saveAndRefresh();
+    }
+
+    // Invite another username to access this list
+    function inviteUser(listId) {
+      const inviteInput = document.getElementById(`invite-user-${listId}`);
+      const targetUser = inviteInput.value.trim();
+
+      if (!targetUser) return alert("Enter a username");
+      if (targetUser === currentUser) return alert("You are already the owner!");
+
+      const list = checklists.find(l => l.id === listId);
+
+      if (list.members.includes(targetUser)) {
+        return alert("User already has access to this list");
+      }
+
+      // Add user to the shared members array
+      list.members.push(targetUser);
+      saveAndRefresh();
+      alert(`Successfully invited ${targetUser}!`);
+    }
+
+    // Helper: Save data changes to localStorage and rebuild the UI
+    function saveAndRefresh() {
+      localStorage.setItem("globalChecklists", JSON.stringify(checklists));
+      renderChecklists();
+    }
+
+    // Logout function
+    function logout() {
+      localStorage.removeItem("loggedInUser");
+      window.location.href = "login.html";
+    }
+
+    // Run on initial page load
+    renderChecklists();
+  </script>
 </body>
 </html>
