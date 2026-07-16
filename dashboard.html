@@ -52,9 +52,10 @@
       const container = document.getElementById("checklists-container");
       container.innerHTML = ""; // Clear existing UI
 
-      // Filter lists where the current user is either the owner or an invited member
+      // CASE-INSENSITIVE FILTER: Shows lists where current user is the owner or an invited member
       const myLists = checklists.filter(list => 
-        list.owner === currentUser || list.members.includes(currentUser)
+        list.owner.toLowerCase() === currentUser.toLowerCase() || 
+        list.members.map(m => m.toLowerCase()).includes(currentUser.toLowerCase())
       );
 
       if (myLists.length === 0) {
@@ -147,11 +148,21 @@
       const targetUser = inviteInput.value.trim();
 
       if (!targetUser) return alert("Enter a username");
-      if (targetUser === currentUser) return alert("You are already the owner!");
+      
+      // Case-insensitive checks to prevent self-invitation or duplicate invites
+      if (targetUser.toLowerCase() === currentUser.toLowerCase()) {
+        return alert("You are already the owner!");
+      }
+
+      // Check if user exists in your account registry database
+      if (!localStorage.getItem(targetUser.toLowerCase())) {
+        return alert("This user does not exist. They must sign up first!");
+      }
 
       const list = checklists.find(l => l.id === listId);
 
-      if (list.members.includes(targetUser)) {
+      const alreadyInvited = list.members.some(m => m.toLowerCase() === targetUser.toLowerCase());
+      if (alreadyInvited) {
         return alert("User already has access to this list");
       }
 
