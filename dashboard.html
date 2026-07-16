@@ -37,7 +37,7 @@
     // Protects the page. Redirects to login if no one is logged in.
     const currentUser = localStorage.getItem("loggedInUser");
     if (!currentUser) {
-      window.location.href = "login.html";
+      window.location.href = "index.html";
     } else {
       document.getElementById("user-display").innerText = currentUser;
     }
