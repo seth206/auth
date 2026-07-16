@@ -1,44 +1,15 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-<form id="signupForm">
-  <h2>Signup</h2>
-  <input type="text" id="username" placeholder="Username" required>
-  
-  <!-- Added an id and dynamic pattern matching -->
-  <input type="password" id="password" placeholder="Password" required 
-         oninput="passwordconf.pattern = this.value">
-         <!doctype html>
+<!doctype html>
 <html>
 <head>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- The action attribute redirects the user to dashboard.html upon successful submission -->
     <form id="loginform" action="dashboard.html">
         <h2>login</h2>
-        
         <input type="text" id="username" placeholder="username" required>
-        
         <input type="password" id="password" placeholder="password" required>
-        
         <button>login</button>
     </form>
     <script src="script.js"></script>
-</body>
-</html>
-
-  <!-- Added a matching pattern and a custom error message -->
-  <input type="password" id="passwordconf" placeholder="Re-enter Password" required 
-         title="Passwords must match">
-         
-  <button>Create Account</button>
-</form>
-
-<script src="script.js"></script>
 </body>
 </html>
