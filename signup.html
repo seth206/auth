@@ -8,8 +8,15 @@
 <form id="signupForm">
   <h2>Signup</h2>
   <input type="text" id="username" placeholder="Username" required>
-  <input type="password" id="password" placeholder="Password" required>
-  <input type="password" id="passwordconf" placeholder="Re-enter Password" required>
+  
+  <!-- Added an id and dynamic pattern matching -->
+  <input type="password" id="password" placeholder="Password" required 
+         oninput="passwordconf.pattern = this.value">
+         
+  <!-- Added a matching pattern and a custom error message -->
+  <input type="password" id="passwordconf" placeholder="Re-enter Password" required 
+         title="Passwords must match">
+         
   <button>Create Account</button>
 </form>
 
